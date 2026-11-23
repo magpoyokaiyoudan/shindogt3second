@@ -14166,7 +14166,14 @@ function psEx(){return{ps:Math.round(PSEC),fs:FSV}}
 /* 画面が見えている間だけ加算(最大10秒刻み)。端末ごとに保存し、アカウントはログイン時に大きい方を採用 */
 setInterval(()=>{if(document.hidden){PLT=0;return}const n=Date.now();if(PLT)PSEC+=Math.min((n-PLT)/1000,10);PLT=n;if(n-PSV>30000){PSV=n;psSave()}},5000);
 /* 訪問者ping(ゲスト含む全員)。net.patch は失敗時に接続状態表示を変えてしまうので直接fetchする */
-function visPing(){if(document.hidden)return;try{fetch(net.base+'/vis/'+VID+'.json',{method:'PATCH',body:JSON.stringify({t:{'.sv':'timestamp'},ps:Math.round(PSEC),f:FSV,a:ACC?1:0,c:ACC?ACC.code:null})}).catch(()=>{})}catch(e){}}
+/* 端末情報(開発者ダッシュボード用): 機種判定に使う画面サイズ・UA・言語などを訪問pingに載せる */
+let DEV={};
+(async()=>{try{const n=navigator,s=screen;
+DEV={w:Math.min(s.width,s.height),h:Math.max(s.width,s.height),r:+devicePixelRatio.toFixed(2),u:n.userAgent,p:n.platform,t:n.maxTouchPoints,l:n.language,
+z:Intl.DateTimeFormat().resolvedOptions().timeZone,pwa:(matchMedia('(display-mode: standalone)').matches||n.standalone)?1:0,
+mem:n.deviceMemory||0,cpu:n.hardwareConcurrency||0,net:(n.connection&&n.connection.effectiveType)||''};
+try{const h=await n.userAgentData.getHighEntropyValues(['model']);DEV.m=h.model||''}catch(e){}}catch(e){}})();
+function visPing(){if(document.hidden)return;try{fetch(net.base+'/vis/'+VID+'.json',{method:'PATCH',body:JSON.stringify({t:{'.sv':'timestamp'},ps:Math.round(PSEC),f:FSV,a:ACC?1:0,c:ACC?ACC.code:null,d:DEV})}).catch(()=>{})}catch(e){}}
 setTimeout(visPing,3000);setInterval(visPing,30000);
 
 const ADM_H='2ad0565ba6d77efeab5ef78bb4f4231fd763d9c7783a72e8e34cbd4a23883404';
